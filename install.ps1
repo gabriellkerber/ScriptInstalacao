@@ -24,8 +24,8 @@ function Download-And-Install {
         [Parameter(Mandatory=$true)]
         [string]$FileName, # Nome do arquivo para salvar (ex: 7z.exe)
 
-        [Parameter(Mandatory=$true)]
-        [string]$Arguments, # Argumento de instalacao silenciosa (ex: /S, /quiet)
+        [Parameter(Mandatory=$false)]
+        [string]$Arguments = "", # Argumento de instalacao silenciosa (ex: /S, /quiet). CORRECAO: Tornada opcional para permitir string vazia.
 
         [string]$DisplayName
     )
