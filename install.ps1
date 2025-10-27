@@ -94,7 +94,7 @@ function Install-WinRAR {
     $InstallerPath = "$InstallDir\$InstallerName"
 
     # Link do arquivo de licenca (RARREG.KEY) - Google Drive
-    $LicenseURL = "https://drive.google.com/uc?export=download&id=1yL4eYoraAky7oTgctLwxmgMLQDOc3odw"
+    $LicenseURL = "https://drive.google.com/uc?export=download&id=1yL4eYoraAky7oTgctLwxmgMLQDOc3odw&confirm=t" # Adicionando confirm=t
     $LicenseName = "rarreg.key"
     $LicensePath = "$InstallDir\$LicenseName"
 
@@ -109,6 +109,14 @@ function Install-WinRAR {
         Write-Host "  -> Download do instalador concluido." -ForegroundColor Green
     } catch {
         Write-Host "  -> ERRO no download do instalador: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    # 1.1. Verificacao de Integridade Simples (Checa se o arquivo nao esta truncado/corrompido)
+    $InstallerFileSize = (Get-Item $InstallerPath).Length
+    if ($InstallerFileSize -lt 100000) { # O instalador deve ter um tamanho razoavel (ex: > 100KB)
+        Write-Host "  -> AVISO DE ERRO DE DOWNLOAD: O arquivo do instalador ($InstallerFileSize bytes) parece estar corrompido/truncado (muito pequeno). Isso geralmente ocorre ao baixar do Google Drive. Tente hospedar o arquivo em outro lugar (ex: Catbox)." -ForegroundColor Red
+        Remove-Item $InstallerPath -ErrorAction SilentlyContinue
         return
     }
     
