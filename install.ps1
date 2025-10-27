@@ -87,6 +87,57 @@ function Install-VSCode {
     Download-And-Install -DirectURL $DirectURL -FileName "VSCodeSetup.exe" -Arguments "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -DisplayName "Visual Studio Code"
 }
 
+function Install-WinRAR {
+    # Link do instalador (EXE) do WinRAR (64-bit) - Google Drive (com confirm=t para evitar bloqueio)
+    $InstallerURL = "https://drive.google.com/uc?export=download&id=1MDXUqXDr4NooJoqjNJGdb8FGDR9ddIrq&confirm=t"
+    $InstallerName = "winrar-x64.exe"
+    $InstallerPath = "$InstallDir\$InstallerName"
+
+    # Link do arquivo de licenca (RARREG.KEY) - Google Drive
+    $LicenseURL = "https://drive.google.com/uc?export=download&id=1yL4eYoraAky7oTgctLwxmgMLQDOc3odw"
+    $LicenseName = "rarreg.key"
+    $LicensePath = "$InstallDir\$LicenseName"
+
+    $DisplayName = "WinRAR (Silencioso e Ativado)"
+
+    Write-Host "`n- Iniciando a instalacao de $($DisplayName)..." -ForegroundColor Yellow
+
+    # 1. Download do Instalador
+    Write-Host "  -> Baixando instalador WinRAR..."
+    try {
+        Invoke-WebRequest -Uri $InstallerURL -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
+        Write-Host "  -> Download do instalador concluido." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO no download do instalador: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+    
+    # 2. Download do Arquivo de Licenca
+    Write-Host "  -> Baixando arquivo de licenca (rarreg.key)..."
+    try {
+        Invoke-WebRequest -Uri $LicenseURL -OutFile $LicensePath -UseBasicParsing -ErrorAction Stop
+        Write-Host "  -> Download da licenca concluido." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO no download da licenca. O WinRAR sera instalado, mas pode nao ser ativado: $($_.Exception.Message)" -ForegroundColor Red
+        # Continuar a instalacao mesmo que a licenca falhe.
+    }
+
+    # 3. Instalacao Silenciosa
+    Write-Host "  -> Iniciando instalacao silenciosa. A ativacao automatica sera tentada..."
+    try {
+        # WinRAR usa '/S' para instalacao silenciosa. O rarreg.key sera detectado e usado.
+        Start-Process -FilePath $InstallerPath -ArgumentList "/S" -Wait -Verb RunAs -ErrorAction Stop
+        Write-Host "  -> Instalação de $($DisplayName) CONCLUIDA com sucesso." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO na instalacao do WinRAR: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
+    # 4. Limpeza (Removendo o instalador e a licenca)
+    Write-Host "  -> Limpando arquivos temporarios do WinRAR..." -ForegroundColor DarkGray
+    Remove-Item $InstallerPath -ErrorAction SilentlyContinue
+    Remove-Item $LicensePath -ErrorAction SilentlyContinue
+}
+
 function Install-Office2024 {
     # NOVO LINK (Catbox.moe - Arquivo ZIP)
     $DirectURL = "https://files.catbox.moe/e7fyd3.zip"
@@ -154,11 +205,12 @@ function Show-Menu {
     Write-Host "        ASSISTENTE DE INSTALACAO RAPIDA       " -ForegroundColor Blue
     Write-Host "==============================================" -ForegroundColor Blue
     Write-Host "Selecione as opcoes desejadas:"
-    Write-Host " [A] Instalar TUDO (7-Zip, Chrome, VS Code, Office)"
+    Write-Host " [A] Instalar TUDO (7-Zip, Chrome, VS Code, WinRAR)"
     Write-Host " [1] Instalar 7-Zip (Compactador)"
     Write-Host " [2] Instalar Google Chrome (Navegador)"
     Write-Host " [3] Instalar Visual Studio Code (Editor)"
     Write-Host " [4] Instalar Office 2024 (Interativo)"
+    Write-Host " [5] Instalar WinRAR (Compactador - Silencioso e Ativado)"
     Write-Host "----------------------------------------------"
     Write-Host " [0] Sair"
     Write-Host "==============================================" -ForegroundColor Blue
@@ -178,6 +230,7 @@ do {
             Install-7Zip
             Install-GoogleChrome
             Install-VSCode
+            Install-WinRAR # Adicionado
             # ATENCAO: Office nao esta incluido na instalacao COMPLETA (A) pois eh INTERATIVO
             Write-Host "`nInstalacoes silenciosas COMPLETA Encerrada. Office 2024 nao foi incluido (requer interacao)." -ForegroundColor Yellow
             break # Volta para o menu apos concluir tudo
@@ -193,6 +246,9 @@ do {
         }
         "4" {
             Install-Office2024
+        }
+        "5" {
+            Install-WinRAR # Novo
         }
         "0" {
             Write-Host "`nSaindo do Assistente. Ate mais!" -ForegroundColor Red
