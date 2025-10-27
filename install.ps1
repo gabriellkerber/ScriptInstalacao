@@ -91,7 +91,7 @@ function Install-Office2024 {
     # NOVO LINK (Catbox.moe - Arquivo ZIP)
     $DirectURL = "https://files.catbox.moe/e7fyd3.zip"
     $ZipFileName = "Office2024_Installer.zip"
-    $ExeInsideZip = "Setup.exe" # ATENCAO: Assumindo que o executavel dentro do ZIP se chama Setup.exe
+    $ExeInsideZip = "OInstall_x64.exe" # ATENCAO: Nome do executavel corrigido
     $ZipFilePath = "$InstallDir\$ZipFileName"
     $ExtractPath = "$InstallDir\Office2024_Extracted"
     $DisplayName = "Office 2024"
