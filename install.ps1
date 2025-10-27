@@ -63,13 +63,13 @@ function Download-And-Install {
 # --- 3. Funcoes de Instalacao de Aplicativos (Modular) ---
 
 function Install-7Zip {
-    # LINK DO 7-ZIP (Transformado do seu Google Drive)
-    # ID: 1p3Fz3taGBc8ZFMQWbPA4tvkVyThy6QpM
-    $DirectURL = "https://drive.google.com/uc?export=download&id=1p3Fz3taGBc8ZFMQWbPA4tvkVyThy6QpM"
+    # NOVO LINK: Link oficial e estavel do 7-Zip (64-bit) para testes
+    # O link do Google Drive foi desativado temporariamente para resolver o erro de arquivo corrompido.
+    $DirectURL = "https://www.7-zip.org/a/7z2301-x64.exe"
 
     # 7-Zip (64 bits - Exemplo)
     Download-And-Install -DirectURL $DirectURL `
-                         -FileName "7z.exe" `
+                         -FileName "7z-x64.exe" ` # Nome do arquivo atualizado
                          -Arguments "/S" ` # Parametro silencioso do 7-Zip
                          -DisplayName "7-Zip"
 }
