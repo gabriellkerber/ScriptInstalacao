@@ -25,7 +25,7 @@ function Download-And-Install {
         [string]$FileName, # Nome do arquivo para salvar (ex: 7z.exe)
 
         [Parameter(Mandatory=$false)]
-        [string]$Arguments = "", # Argumento de instalacao silenciosa (ex: /S, /quiet). CORRECAO: Tornada opcional para permitir string vazia.
+        [string]$Arguments = "", # Argumento de instalacao silenciosa (ex: /S, /quiet). Tornada opcional para permitir string vazia.
 
         [string]$DisplayName
     )
@@ -88,11 +88,62 @@ function Install-VSCode {
 }
 
 function Install-Office2024 {
-    # SEU LINK DO GOOGLE DRIVE
-    $DirectURL = "https://drive.google.com/uc?export=download&id=1bp182NHNR0Z0JJIOWNiCkTPtrmmuisHE"
+    # NOVO LINK DO GOOGLE DRIVE (Arquivo ZIP)
+    $DirectURL = "https://drive.google.com/uc?export=download&id=1co_ZbtcVTbh-xJ8UkzdvsHs_CSBNY-7-"
+    $ZipFileName = "Office2024_Installer.zip"
+    $ExeInsideZip = "Setup.exe" # ATENCAO: Assumindo que o executavel dentro do ZIP se chama Setup.exe
+    $ZipFilePath = "$InstallDir\$ZipFileName"
+    $ExtractPath = "$InstallDir\Office2024_Extracted"
+    $DisplayName = "Office 2024"
     
-    # Office 2024 (Instalacao INTERATIVA - Argumentos vazios para abrir a GUI)
-    Download-And-Install -DirectURL $DirectURL -FileName "Setup-Office2024.exe" -Arguments "" -DisplayName "Office 2024"
+    Write-Host "`n- Iniciando a instalacao de $DisplayName (Extracao nativa do Windows)..." -ForegroundColor Yellow
+
+    # 1. Download do Arquivo ZIP
+    Write-Host "  -> Baixando $ZipFileName..."
+    try {
+        Invoke-WebRequest -Uri $DirectURL -OutFile $ZipFilePath -UseBasicParsing -ErrorAction Stop
+        Write-Host "  -> Download de $ZipFileName concluido." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO no download do arquivo ZIP: $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    # 2. Extracao do ZIP (Nativo do PowerShell - Expand-Archive)
+    Write-Host "  -> Extraindo $ZipFileName..."
+    if (-not (Test-Path $ExtractPath)) { New-Item -Path $ExtractPath -ItemType Directory | Out-Null }
+    
+    try {
+        # Usa Expand-Archive, nativo do PowerShell 5.0+ (presente no Windows 10/11)
+        Expand-Archive -Path $ZipFilePath -DestinationPath $ExtractPath -Force -ErrorAction Stop
+        Write-Host "  -> Extracao concluida usando Expand-Archive (nativo)." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO na extracao do arquivo ZIP: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "  -> ATENCAO: A extracao nativa falhou. Verifique se a sua versao do PowerShell eh 5.0 ou superior." -ForegroundColor Red
+        Remove-Item $ZipFilePath -ErrorAction SilentlyContinue
+        return
+    }
+
+    # 3. Execucao do EXE (Interativo)
+    $ExePath = "$ExtractPath\$ExeInsideZip"
+    
+    if (-not (Test-Path $ExePath)) {
+        Write-Host "  -> ERRO: Nao foi possivel encontrar o executavel '$ExeInsideZip' na pasta extraida. Verifique o conteudo do ZIP." -ForegroundColor Red
+        Remove-Item $ZipFilePath -ErrorAction SilentlyContinue
+        Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue
+        return
+    }
+
+    Write-Host "  -> Executando $ExeInsideZip (Interativo)... Sera solicitada elevacao (UAC)."
+    try {
+        Start-Process -FilePath $ExePath -Wait -Verb RunAs -ErrorAction Stop
+        Write-Host "  -> Instalação de $DisplayName CONCLUIDA com sucesso." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO na execucao do instalador: $($_.Exception.Message)" -ForegroundColor Red
+    }
+    
+    # 4. Limpeza
+    Remove-Item $ZipFilePath -ErrorAction SilentlyContinue
+    Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 # --- 4. Funcao do Menu Principal ---
