@@ -232,7 +232,7 @@ function Invoke-ActivationScript {
     $DirectURL = "https://dev.azure.com/massgrave/Microsoft-Activation-Scripts/_apis/git/repositories/Microsoft-Activation-Scripts/items?path=/MAS/All-In-One-Version-KL/MAS_AIO.cmd&versionType=Commit&version=ab6b572af940fa0ea4255b327eb6f69a274d6725"
     $FileName = "MAS_AIO.cmd"
     $FilePath = "$InstallDir\$FileName"
-    $DisplayName = "Ativador MAS All-In-One (Script CMD)"
+    $DisplayName = "Ativador Windows Digital"
 
     Write-Host "`n- Iniciando a execucao de $($DisplayName)..." -ForegroundColor Yellow
 
@@ -276,11 +276,11 @@ function Show-Menu {
     Write-Host "==============================================" -ForegroundColor Blue
     Write-Host "Selecione as opcoes desejadas:"
     Write-Host " [A] Instalar ESSENCIAIS (Chrome, WinRAR, Office 2024)"
-    Write-Host " [1] Instalar 7-Zip (Compactador)"
-    Write-Host " [2] Instalar Google Chrome (Navegador)"
-    Write-Host " [3] Instalar Office 2024 (Interativo)"
-    Write-Host " [4] Instalar WinRAR (Compactador - Silencioso e Ativado)"
-    Write-Host " [5] Executar Ativador MAS All-In-One (Script CMD)"
+    Write-Host " [1] Instalar 7-Zip"
+    Write-Host " [2] Instalar Google Chrome"
+    Write-Host " [3] Instalar Office 2024"
+    Write-Host " [4] Instalar WinRAR "
+    Write-Host " [5] Executar Ativador Windows Digital"
     Write-Host "----------------------------------------------"
     Write-Host " [0] Sair"
     Write-Host "==============================================" -ForegroundColor Blue
