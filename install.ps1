@@ -88,40 +88,35 @@ function Install-VSCode {
 }
 
 function Install-WinRAR {
-    # Link do instalador (EXE) do WinRAR (64-bit) - Google Drive (com confirm=t para evitar bloqueio)
-    $InstallerURL = "https://drive.google.com/uc?export=download&id=1MDXUqXDr4NooJoqjNJGdb8FGDR9ddIrq&confirm=t"
-    $InstallerName = "winrar-x64.exe"
-    $InstallerPath = "$InstallDir\$InstallerName"
-
+    # Link do instalador (ZIP) do WinRAR - Catbox.moe
+    $ZipURL = "https://files.catbox.moe/ko045v.zip" 
+    $ZipFileName = "WinRAR_Installer.zip"
+    $ExeInsideZip = "setup.exe" # CORRIGIDO: Nome do executável informado pelo usuário
+    $ZipFilePath = "$InstallDir\$ZipFileName"
+    $ExtractPath = "$InstallDir\WinRAR_Extracted"
+    
     # Link do arquivo de licenca (RARREG.KEY) - Google Drive
-    $LicenseURL = "https://drive.google.com/uc?export=download&id=1yL4eYoraAky7oTgctLwxmgMLQDOc3odw&confirm=t" # Adicionando confirm=t
+    $LicenseURL = "https://drive.google.com/uc?export=download&id=1yL4eYoraAky7oTgctLwxmgMLQDOc3odw&confirm=t"
     $LicenseName = "rarreg.key"
-    $LicensePath = "$InstallDir\$LicenseName"
+    $LicensePath = "$InstallDir\$LicenseName" # Local temporário para o download inicial
 
     $DisplayName = "WinRAR (Silencioso e Ativado)"
+    $ExePath = "$ExtractPath\$ExeInsideZip" # Caminho final do executável
 
-    Write-Host "`n- Iniciando a instalacao de $($DisplayName)..." -ForegroundColor Yellow
+    Write-Host "`n- Iniciando a instalacao de $($DisplayName) (Extracao nativa do Windows)..." -ForegroundColor Yellow
 
-    # 1. Download do Instalador
-    Write-Host "  -> Baixando instalador WinRAR..."
+    # 1. Download do Arquivo ZIP (Instalador)
+    Write-Host "  -> Baixando instalador WinRAR (ZIP)..."
     try {
-        Invoke-WebRequest -Uri $InstallerURL -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
-        Write-Host "  -> Download do instalador concluido." -ForegroundColor Green
+        Invoke-WebRequest -Uri $ZipURL -OutFile $ZipFilePath -UseBasicParsing -ErrorAction Stop
+        Write-Host "  -> Download do ZIP concluido." -ForegroundColor Green
     } catch {
-        Write-Host "  -> ERRO no download do instalador: $($_.Exception.Message)" -ForegroundColor Red
-        return
-    }
-
-    # 1.1. Verificacao de Integridade Simples (Checa se o arquivo nao esta truncado/corrompido)
-    $InstallerFileSize = (Get-Item $InstallerPath).Length
-    if ($InstallerFileSize -lt 100000) { # O instalador deve ter um tamanho razoavel (ex: > 100KB)
-        Write-Host "  -> AVISO DE ERRO DE DOWNLOAD: O arquivo do instalador ($InstallerFileSize bytes) parece estar corrompido/truncado (muito pequeno). Isso geralmente ocorre ao baixar do Google Drive. Tente hospedar o arquivo em outro lugar (ex: Catbox)." -ForegroundColor Red
-        Remove-Item $InstallerPath -ErrorAction SilentlyContinue
+        Write-Host "  -> ERRO no download do arquivo ZIP: $($_.Exception.Message)" -ForegroundColor Red
         return
     }
     
-    # 2. Download do Arquivo de Licenca
-    Write-Host "  -> Baixando arquivo de licenca (rarreg.key)..."
+    # 2. Download do Arquivo de Licenca (Key)
+    Write-Host "  -> Baixando arquivo de licenca ($LicenseName)..."
     try {
         Invoke-WebRequest -Uri $LicenseURL -OutFile $LicensePath -UseBasicParsing -ErrorAction Stop
         Write-Host "  -> Download da licenca concluido." -ForegroundColor Green
@@ -130,20 +125,51 @@ function Install-WinRAR {
         # Continuar a instalacao mesmo que a licenca falhe.
     }
 
-    # 3. Instalacao Silenciosa
+    # 3. Extracao do ZIP
+    Write-Host "  -> Extraindo $ZipFileName..."
+    if (-not (Test-Path $ExtractPath)) { New-Item -Path $ExtractPath -ItemType Directory | Out-Null }
+    
+    try {
+        Expand-Archive -Path $ZipFilePath -DestinationPath $ExtractPath -Force -ErrorAction Stop
+        Write-Host "  -> Extracao concluida." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO na extracao do arquivo ZIP: $($_.Exception.Message)" -ForegroundColor Red
+        Remove-Item $ZipFilePath -ErrorAction SilentlyContinue
+        return
+    }
+
+    # 4. Mover a licenca para a pasta extraida
+    if (Test-Path $LicensePath) {
+        Write-Host "  -> Movendo licenca para a pasta extraida para ativacao automatica..."
+        try {
+            # Move o rarreg.key do diretório temporário para a pasta onde está o instalador
+            Move-Item -Path $LicensePath -Destination $ExtractPath -Force -ErrorAction Stop
+        } catch {
+            Write-Host "  -> ERRO ao mover a licenca: $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+
+    # 5. Execucao do EXE (Silenciosa)
+    if (-not (Test-Path $ExePath)) {
+        Write-Host "  -> ERRO: Nao foi possivel encontrar o executavel '$ExeInsideZip' na pasta extraida. Verifique o conteudo do ZIP." -ForegroundColor Red
+        Remove-Item $ZipFilePath -ErrorAction SilentlyContinue
+        Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue
+        return
+    }
+
     Write-Host "  -> Iniciando instalacao silenciosa. A ativacao automatica sera tentada..."
     try {
-        # WinRAR usa '/S' para instalacao silenciosa. O rarreg.key sera detectado e usado.
-        Start-Process -FilePath $InstallerPath -ArgumentList "/S" -Wait -Verb RunAs -ErrorAction Stop
+        # O instalador WinRAR, quando executado, encontrará o rarreg.key na mesma pasta.
+        Start-Process -FilePath $ExePath -ArgumentList "/S" -Wait -Verb RunAs -ErrorAction Stop
         Write-Host "  -> Instalação de $($DisplayName) CONCLUIDA com sucesso." -ForegroundColor Green
     } catch {
         Write-Host "  -> ERRO na instalacao do WinRAR: $($_.Exception.Message)" -ForegroundColor Red
     }
 
-    # 4. Limpeza (Removendo o instalador e a licenca)
+    # 6. Limpeza
     Write-Host "  -> Limpando arquivos temporarios do WinRAR..." -ForegroundColor DarkGray
-    Remove-Item $InstallerPath -ErrorAction SilentlyContinue
-    Remove-Item $LicensePath -ErrorAction SilentlyContinue
+    Remove-Item $ZipFilePath -ErrorAction SilentlyContinue
+    Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 function Install-Office2024 {
