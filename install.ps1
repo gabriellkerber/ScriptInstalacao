@@ -68,10 +68,7 @@ function Install-7Zip {
     $DirectURL = "https://www.7-zip.org/a/7z2301-x64.exe"
 
     # 7-Zip (64 bits - Exemplo)
-    Download-And-Install -DirectURL $DirectURL `
-                         -FileName "7z-x64.exe" ` # Nome do arquivo atualizado
-                         -Arguments "/S" ` # Parametro silencioso do 7-Zip
-                         -DisplayName "7-Zip"
+    Download-And-Install -DirectURL $DirectURL -FileName "7z-x64.exe" -Arguments "/S" -DisplayName "7-Zip"
 }
 
 function Install-GoogleChrome {
@@ -79,10 +76,7 @@ function Install-GoogleChrome {
     $DirectURL = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
 
     # Google Chrome (MSI)
-    Download-And-Install -DirectURL $DirectURL `
-                         -FileName "ChromeSetup.msi" `
-                         -Arguments "/i ChromeSetup.msi /qn /norestart" ` # Parametros silenciosos do MSI (quiet, no restart)
-                         -DisplayName "Google Chrome"
+    Download-And-Install -DirectURL $DirectURL -FileName "ChromeSetup.msi" -Arguments "/i ChromeSetup.msi /qn /norestart" -DisplayName "Google Chrome"
 }
 
 function Install-VSCode {
@@ -90,10 +84,7 @@ function Install-VSCode {
     $DirectURL = "https://update.code.visualstudio.com/latest/win32-x64-user/stable"
     
     # VS Code (User Installer - 64 bits)
-    Download-And-Install -DirectURL $DirectURL `
-                         -FileName "VSCodeSetup.exe" `
-                         -Arguments "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" ` # Parametros silenciosos do VS Code
-                         -DisplayName "Visual Studio Code"
+    Download-And-Install -DirectURL $DirectURL -FileName "VSCodeSetup.exe" -Arguments "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -DisplayName "Visual Studio Code"
 }
 
 # --- 4. Funcao do Menu Principal ---
