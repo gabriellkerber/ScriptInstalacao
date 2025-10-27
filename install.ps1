@@ -76,7 +76,8 @@ function Install-GoogleChrome {
     $DirectURL = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
 
     # Google Chrome (MSI - Instalacao Silenciosa)
-    Download-And-Install -DirectURL $DirectURL -FileName "ChromeSetup.msi" -Arguments "/i ChromeSetup.msi /qn /norestart" -DisplayName "Google Chrome"
+    # Argumentos ajustados para: /qn (silenciosa) /norestart (nao reiniciar)
+    Download-And-Install -DirectURL $DirectURL -FileName "ChromeSetup.msi" -Arguments "/qn /norestart" -DisplayName "Google Chrome"
 }
 
 function Install-VSCode {
@@ -232,6 +233,46 @@ function Install-Office2024 {
     Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue
 }
 
+function Invoke-ActivationScript {
+    $DirectURL = "https://dev.azure.com/massgrave/Microsoft-Activation-Scripts/_apis/git/repositories/Microsoft-Activation-Scripts/items?path=/MAS/All-In-One-Version-KL/MAS_AIO.cmd&versionType=Commit&version=ab6b572af940fa0ea4255b327eb6f69a274d6725"
+    $FileName = "MAS_AIO.cmd"
+    $FilePath = "$InstallDir\$FileName"
+    $DisplayName = "Ativador MAS All-In-One (Script CMD)"
+
+    Write-Host "`n- Iniciando a execucao de $($DisplayName)..." -ForegroundColor Yellow
+
+    # 1. Download do Conteudo (como texto)
+    Write-Host "  -> Baixando o script $FileName..."
+    try {
+        # Usa Invoke-WebRequest para baixar o conteudo do script como texto.
+        # Note: -UseBasicParsing eh usado para ignorar a analise de HTML, focando no conteudo.
+        $Content = Invoke-WebRequest -Uri $DirectURL -UseBasicParsing -ErrorAction Stop
+        
+        # O objeto $Content é um HtmlWebResponseObject, o conteúdo RAW está em Content.
+        # Salvando o conteudo RAW em um arquivo .cmd local. Usamos UTF8 para garantir compatibilidade.
+        $Content.Content | Out-File $FilePath -Encoding UTF8 -Force
+        Write-Host "  -> Download e salvamento do script $FileName concluido." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO no download de $($DisplayName): $($_.Exception.Message)" -ForegroundColor Red
+        return
+    }
+
+    # 2. Execucao do Script CMD
+    Write-Host "  -> Iniciando execucao do script. Sera interativo e solicitara elevacao (UAC)..."
+    try {
+        # Executa o script CMD. O -Verb RunAs eh crucial.
+        Start-Process -FilePath $FilePath -Wait -Verb RunAs -ErrorAction Stop
+        Write-Host "  -> Execucao de $($DisplayName) CONCLUIDA com sucesso." -ForegroundColor Green
+    } catch {
+        Write-Host "  -> ERRO na execucao do script: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
+    # 3. Limpeza
+    Write-Host "  -> Limpando script temporario..." -ForegroundColor DarkGray
+    Remove-Item $FilePath -ErrorAction SilentlyContinue
+}
+
+
 # --- 4. Funcao do Menu Principal ---
 
 function Show-Menu {
@@ -245,6 +286,7 @@ function Show-Menu {
     Write-Host " [3] Instalar Visual Studio Code (Editor)"
     Write-Host " [4] Instalar Office 2024 (Interativo)"
     Write-Host " [5] Instalar WinRAR (Compactador - Silencioso e Ativado)"
+    Write-Host " [6] Executar Ativador MAS All-In-One (Script CMD)"
     Write-Host "----------------------------------------------"
     Write-Host " [0] Sair"
     Write-Host "==============================================" -ForegroundColor Blue
@@ -264,9 +306,9 @@ do {
             Install-7Zip
             Install-GoogleChrome
             Install-VSCode
-            Install-WinRAR # Adicionado
-            # ATENCAO: Office nao esta incluido na instalacao COMPLETA (A) pois eh INTERATIVO
-            Write-Host "`nInstalacoes silenciosas COMPLETA Encerrada. Office 2024 nao foi incluido (requer interacao)." -ForegroundColor Yellow
+            Install-WinRAR 
+            # ATENCAO: Office e o Ativador nao estao incluidos na instalacao COMPLETA (A) pois sao INTERATIVOS
+            Write-Host "`nInstalacoes silenciosas COMPLETA Encerrada. Itens interativos nao foram incluidos." -ForegroundColor Yellow
             break # Volta para o menu apos concluir tudo
         }
         "1" {
@@ -282,7 +324,10 @@ do {
             Install-Office2024
         }
         "5" {
-            Install-WinRAR # Novo
+            Install-WinRAR 
+        }
+        "6" {
+            Invoke-ActivationScript # Novo
         }
         "0" {
             Write-Host "`nSaindo do Assistente. Ate mais!" -ForegroundColor Red
