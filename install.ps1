@@ -88,8 +88,8 @@ function Install-VSCode {
 }
 
 function Install-Office2024 {
-    # NOVO LINK DO GOOGLE DRIVE (Arquivo ZIP)
-    $DirectURL = "https://drive.google.com/uc?export=download&id=1co_ZbtcVTbh-xJ8UkzdvsHs_CSBNY-7-"
+    # NOVO LINK (Catbox.moe - Arquivo ZIP)
+    $DirectURL = "https://files.catbox.moe/e7fyd3.zip"
     $ZipFileName = "Office2024_Installer.zip"
     $ExeInsideZip = "Setup.exe" # ATENCAO: Assumindo que o executavel dentro do ZIP se chama Setup.exe
     $ZipFilePath = "$InstallDir\$ZipFileName"
@@ -101,8 +101,9 @@ function Install-Office2024 {
     # 1. Download do Arquivo ZIP
     Write-Host "  -> Baixando $ZipFileName..."
     try {
+        # Usa Invoke-WebRequest para baixar o arquivo
         Invoke-WebRequest -Uri $DirectURL -OutFile $ZipFilePath -UseBasicParsing -ErrorAction Stop
-        Write-Host "  -> Download de $ZipFileName concluido." -ForegroundColor Green
+        Write-Host "  -> Download concluido." -ForegroundColor Green
     } catch {
         Write-Host "  -> ERRO no download do arquivo ZIP: $($_.Exception.Message)" -ForegroundColor Red
         return
