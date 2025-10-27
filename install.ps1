@@ -80,19 +80,14 @@ function Install-GoogleChrome {
     Download-And-Install -DirectURL $DirectURL -FileName "ChromeSetup.msi" -Arguments "/qn /norestart" -DisplayName "Google Chrome"
 }
 
-function Install-VSCode {
-    # Link de download direto oficial
-    $DirectURL = "https://update.code.visualstudio.com/latest/win32-x64-user/stable"
-    
-    # VS Code (User Installer - 64 bits - Instalacao Silenciosa)
-    Download-And-Install -DirectURL $DirectURL -FileName "VSCodeSetup.exe" -Arguments "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -DisplayName "Visual Studio Code"
-}
+# FUNCAO Install-VSCode REMOVIDA
+# function Install-VSCode { ... }
 
 function Install-WinRAR {
     # Link do instalador (ZIP) do WinRAR - Catbox.moe
     $ZipURL = "https://files.catbox.moe/ko045v.zip" 
     $ZipFileName = "WinRAR_Installer.zip"
-    $ExeInsideZip = "setup.exe" # CORRIGIDO: Nome do executável informado pelo usuário
+    $ExeInsideZip = "setup.exe" # Nome do executável
     $ZipFilePath = "$InstallDir\$ZipFileName"
     $ExtractPath = "$InstallDir\WinRAR_Extracted"
     
@@ -177,7 +172,7 @@ function Install-Office2024 {
     # NOVO LINK (Catbox.moe - Arquivo ZIP)
     $DirectURL = "https://files.catbox.moe/e7fyd3.zip"
     $ZipFileName = "Office2024_Installer.zip"
-    $ExeInsideZip = "OInstall_x64.exe" # ATENCAO: Nome do executavel corrigido
+    $ExeInsideZip = "OInstall_x64.exe" # Nome do executavel
     $ZipFilePath = "$InstallDir\$ZipFileName"
     $ExtractPath = "$InstallDir\Office2024_Extracted"
     $DisplayName = "Office 2024"
@@ -280,13 +275,12 @@ function Show-Menu {
     Write-Host "        ASSISTENTE DE INSTALACAO RAPIDA       " -ForegroundColor Blue
     Write-Host "==============================================" -ForegroundColor Blue
     Write-Host "Selecione as opcoes desejadas:"
-    Write-Host " [A] Instalar TUDO (7-Zip, Chrome, VS Code, WinRAR)"
+    Write-Host " [A] Instalar ESSENCIAIS (Chrome, WinRAR, Office 2024)"
     Write-Host " [1] Instalar 7-Zip (Compactador)"
     Write-Host " [2] Instalar Google Chrome (Navegador)"
-    Write-Host " [3] Instalar Visual Studio Code (Editor)"
-    Write-Host " [4] Instalar Office 2024 (Interativo)"
-    Write-Host " [5] Instalar WinRAR (Compactador - Silencioso e Ativado)"
-    Write-Host " [6] Executar Ativador MAS All-In-One (Script CMD)"
+    Write-Host " [3] Instalar Office 2024 (Interativo)"
+    Write-Host " [4] Instalar WinRAR (Compactador - Silencioso e Ativado)"
+    Write-Host " [5] Executar Ativador MAS All-In-One (Script CMD)"
     Write-Host "----------------------------------------------"
     Write-Host " [0] Sair"
     Write-Host "==============================================" -ForegroundColor Blue
@@ -302,13 +296,19 @@ do {
     
     switch ($Choice.ToUpper()) {
         "A" {
-            Write-Host "`n-- Executando Instalacao COMPLETA --" -ForegroundColor Magenta
-            Install-7Zip
+            Write-Host "`n-- Executando Instalacao ESSENCIAL (Chrome, WinRAR, Office) --" -ForegroundColor Magenta
+            
+            # Executa Chrome (Silencioso)
             Install-GoogleChrome
-            Install-VSCode
+            
+            # Executa WinRAR (Silencioso)
             Install-WinRAR 
-            # ATENCAO: Office e o Ativador nao estao incluidos na instalacao COMPLETA (A) pois sao INTERATIVOS
-            Write-Host "`nInstalacoes silenciosas COMPLETA Encerrada. Itens interativos nao foram incluidos." -ForegroundColor Yellow
+            
+            # Executa Office 2024 (Interativo - exigirá a sua acao)
+            Install-Office2024 
+            
+            # ATENCAO: 7-Zip e VS Code foram removidos. Office 2024 eh interativo.
+            Write-Host "`nInstalacao ESSENCIAL Encerrada. O Office 2024 exigiu interacao do usuario." -ForegroundColor Yellow
             break # Volta para o menu apos concluir tudo
         }
         "1" {
@@ -317,17 +317,15 @@ do {
         "2" {
             Install-GoogleChrome
         }
+        # Opcao [3] (VS Code) removida. As opcoes 4, 5 e 6 foram reenumeradas.
         "3" {
-            Install-VSCode
-        }
-        "4" {
             Install-Office2024
         }
-        "5" {
+        "4" {
             Install-WinRAR 
         }
-        "6" {
-            Invoke-ActivationScript # Novo
+        "5" {
+            Invoke-ActivationScript 
         }
         "0" {
             Write-Host "`nSaindo do Assistente. Ate mais!" -ForegroundColor Red
