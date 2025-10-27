@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # SCRIPT DE INSTALAÇÃO MULTI-APLICATIVOS
 # Este script utiliza funções para baixar e instalar programas silenciosamente.
 # Requer execução com permissões de Administrador.
