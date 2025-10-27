@@ -49,8 +49,9 @@ function Download-And-Install {
     Write-Host "  -> Instalando silenciosamente..."
     try {
         # Executa o instalador com os argumentos silenciosos
-        # ADICIONADO: -Verb RunAs para garantir que a instalacao ocorra com privilegios elevados (Administrador)
-        Start-Process -FilePath $FilePath -ArgumentList $Arguments -Wait -NoNewWindow -Verb RunAs -ErrorAction Stop
+        # -Wait garante que o script espera o fim da instalacao
+        # CORRECAO: Removido o parametro -NoNewWindow para resolver o erro de conjunto de parametros
+        Start-Process -FilePath $FilePath -ArgumentList $Arguments -Wait -Verb RunAs -ErrorAction Stop
         Write-Host "  -> Instalação de $($DisplayName) CONCLUIDA com sucesso." -ForegroundColor Green
     } catch {
         Write-Host "  -> ERRO na instalacao silenciosa de $($DisplayName): $($_.Exception.Message)" -ForegroundColor Red
