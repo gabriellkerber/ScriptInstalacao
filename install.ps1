@@ -45,16 +45,16 @@ function Download-And-Install {
         return # Sai da funcao em caso de falha
     }
 
-    # 2. Instalação Silenciosa
-    Write-Host "  -> Instalando silenciosamente..."
+    # 2. Instalação Silenciosa/Interativa
+    Write-Host "  -> Iniciando instalacao (sera interativa se nao houver argumentos silenciosos)..."
     try {
-        # Executa o instalador com os argumentos silenciosos
-        # -Wait garante que o script espera o fim da instalacao
-        # CORRECAO: Removido o parametro -NoNewWindow para resolver o erro de conjunto de parametros
+        # Executa o instalador
+        # -Verb RunAs: Garante a elevacao (UAC)
+        # -Wait: Garante que o script espere o instalador terminar
         Start-Process -FilePath $FilePath -ArgumentList $Arguments -Wait -Verb RunAs -ErrorAction Stop
         Write-Host "  -> Instalação de $($DisplayName) CONCLUIDA com sucesso." -ForegroundColor Green
     } catch {
-        Write-Host "  -> ERRO na instalacao silenciosa de $($DisplayName): $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "  -> ERRO na instalacao de $($DisplayName): $($_.Exception.Message)" -ForegroundColor Red
     }
 
     # 3. Limpeza (Removendo o instalador para liberar espaco)
@@ -64,19 +64,18 @@ function Download-And-Install {
 # --- 3. Funcoes de Instalacao de Aplicativos (Modular) ---
 
 function Install-7Zip {
-    # NOVO LINK: Link oficial e estavel do 7-Zip (64-bit) para testes
-    # O link do Google Drive foi desativado temporariamente para resolver o erro de arquivo corrompido.
+    # Link oficial e estavel do 7-Zip (64-bit)
     $DirectURL = "https://www.7-zip.org/a/7z2301-x64.exe"
 
-    # 7-Zip (64 bits - Exemplo)
+    # 7-Zip (64 bits - Instalacao Silenciosa)
     Download-And-Install -DirectURL $DirectURL -FileName "7z-x64.exe" -Arguments "/S" -DisplayName "7-Zip"
 }
 
 function Install-GoogleChrome {
-    # ATENCAO: Link de download direto oficial (MSI - Melhor para empresas/silenciosa)
+    # Link de download direto oficial (MSI - Melhor para empresas/silenciosa)
     $DirectURL = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
 
-    # Google Chrome (MSI)
+    # Google Chrome (MSI - Instalacao Silenciosa)
     Download-And-Install -DirectURL $DirectURL -FileName "ChromeSetup.msi" -Arguments "/i ChromeSetup.msi /qn /norestart" -DisplayName "Google Chrome"
 }
 
@@ -84,8 +83,16 @@ function Install-VSCode {
     # Link de download direto oficial
     $DirectURL = "https://update.code.visualstudio.com/latest/win32-x64-user/stable"
     
-    # VS Code (User Installer - 64 bits)
+    # VS Code (User Installer - 64 bits - Instalacao Silenciosa)
     Download-And-Install -DirectURL $DirectURL -FileName "VSCodeSetup.exe" -Arguments "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -DisplayName "Visual Studio Code"
+}
+
+function Install-Office2024 {
+    # SEU LINK DO GOOGLE DRIVE
+    $DirectURL = "https://drive.google.com/uc?export=download&id=1bp182NHNR0Z0JJIOWNiCkTPtrmmuisHE"
+    
+    # Office 2024 (Instalacao INTERATIVA - Argumentos vazios para abrir a GUI)
+    Download-And-Install -DirectURL $DirectURL -FileName "Setup-Office2024.exe" -Arguments "" -DisplayName "Office 2024"
 }
 
 # --- 4. Funcao do Menu Principal ---
@@ -95,10 +102,11 @@ function Show-Menu {
     Write-Host "        ASSISTENTE DE INSTALACAO RAPIDA       " -ForegroundColor Blue
     Write-Host "==============================================" -ForegroundColor Blue
     Write-Host "Selecione as opcoes desejadas:"
-    Write-Host " [A] Instalar TUDO (7-Zip, Chrome, VS Code)"
+    Write-Host " [A] Instalar TUDO (7-Zip, Chrome, VS Code, Office)"
     Write-Host " [1] Instalar 7-Zip (Compactador)"
     Write-Host " [2] Instalar Google Chrome (Navegador)"
     Write-Host " [3] Instalar Visual Studio Code (Editor)"
+    Write-Host " [4] Instalar Office 2024 (Interativo)"
     Write-Host "----------------------------------------------"
     Write-Host " [0] Sair"
     Write-Host "==============================================" -ForegroundColor Blue
@@ -118,7 +126,8 @@ do {
             Install-7Zip
             Install-GoogleChrome
             Install-VSCode
-            Write-Host "`n-- Instalacao COMPLETA Encerrada --" -ForegroundColor Magenta
+            # ATENCAO: Office nao esta incluido na instalacao COMPLETA (A) pois eh INTERATIVO
+            Write-Host "`nInstalacoes silenciosas COMPLETA Encerrada. Office 2024 nao foi incluido (requer interacao)." -ForegroundColor Yellow
             break # Volta para o menu apos concluir tudo
         }
         "1" {
@@ -129,6 +138,9 @@ do {
         }
         "3" {
             Install-VSCode
+        }
+        "4" {
+            Install-Office2024
         }
         "0" {
             Write-Host "`nSaindo do Assistente. Ate mais!" -ForegroundColor Red
